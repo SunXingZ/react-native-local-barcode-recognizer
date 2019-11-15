@@ -96,11 +96,79 @@ public class LocalBarcodeRecognizerModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private BinaryBitmap generateBitmapFromImageData(Bitmap bitmap) {
-        int[] mImageData = new int[bitmap.getWidth()*bitmap.getHeight()];
+    public static Bitmap getSmallerBitmap(Bitmap bitmap) {
+        int size = bitmap.getWidth() * bitmap.getHeight() / 160000;
+        if (size <= 1)
+            return bitmap; // if less than
+        else {
+            Matrix matrix = new Matrix();
+            matrix.postScale((float) (1 / Math.sqrt(size)), (float) (1 / Math.sqrt(size)));
+            Bitmap resizeBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix,
+                    true);
+            return resizeBitmap;
+        }
+    }
+
+   private BinaryBitmap generateBitmapFromImageData(Bitmap bitmap) {
+        bitmap = getSmallerBitmap(bitmap);
+        int[] mImageData = new int[bitmap.getWidth() * bitmap.getHeight()];
         bitmap.getPixels(mImageData, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-        LuminanceSource source = new RGBLuminanceSource(bitmap.getWidth(), bitmap.getHeight(),mImageData);
-        return new BinaryBitmap(new HybridBinarizer(source));
+        int inputWidth = bitmap.getWidth();
+        int inputHeight = bitmap.getHeight();
+        byte[] yuv = new byte[inputWidth * inputHeight + ((inputWidth % 2 == 0 ? inputWidth : (inputWidth + 1))
+                * (inputHeight % 2 == 0 ? inputHeight : (inputHeight + 1))) / 2];
+        encodeYUV420SP(yuv, mImageData, inputWidth, inputHeight);
+        bitmap.recycle();
+        PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(yuv, // byte[] yuvData
+                inputWidth, // int dataWidth
+                inputHeight, // int dataHeight
+                0, // int left
+                0, // int top
+                inputWidth, // int width
+                inputHeight, // int height
+                false // boolean reverseHorizontal
+        );
+        return new BinaryBitmap(new);
+    }
+
+    private static void encodeYUV420SP(byte[] yuv420sp, int[] argb, int width, int height) {
+        // the pixel size of the frame image
+        final int frameSize = width * height;
+        // Y index starts from 0
+        int yIndex = 0;
+        // UV index starts from frameSize
+        int uvIndex = frameSize;
+        // YUV data, ARGB data
+        int Y, U, V, a, R, G, B;
+        ;
+        int argbIndex = 0;
+        // --- Loop all pixels, RGB to YUV---
+        for (int j = 0; j < height; j++) {
+            for (int i = 0; i < width; i++) {
+
+                // a is not used obviously
+                a = (argb[argbIndex] & 0xff000000) >> 24;
+                R = (argb[argbIndex] & 0xff0000) >> 16;
+                G = (argb[argbIndex] & 0xff00) >> 8;
+                B = (argb[argbIndex] & 0xff);
+                argbIndex++;
+
+                // well known RGB to YUV algorithm
+                Y = ((66 * R + 129 * G + 25 * B + 128) >> 8) + 16;
+                U = ((-38 * R - 74 * G + 112 * B + 128) >> 8) + 128;
+                V = ((112 * R - 94 * G - 18 * B + 128) >> 8) + 128;
+
+                Y = Math.max(0, Math.min(Y, 255));
+                U = Math.max(0, Math.min(U, 255));
+                V = Math.max(0, Math.min(V, 255));
+                yuv420sp[yIndex++] = (byte) Y;
+                // ---UV---
+                if ((j % 2 == 0) && (i % 2 == 0)) {
+                    yuv420sp[uvIndex++] = (byte) V;
+                    yuv420sp[uvIndex++] = (byte) U;
+                }
+            }
+        }
     }
 
     private Bitmap rotateImage(Bitmap src, float degree)
