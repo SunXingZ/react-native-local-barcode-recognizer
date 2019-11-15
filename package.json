@@ -1,6 +1,6 @@
 {
   "name": "react-native-local-qrcode",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "The plugin to recognize the barcode from local image for React Native.",
   "author": "Hiep Tran<tranhiepqna@gmail.com>",
   "contributors": [],
