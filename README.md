@@ -1,13 +1,13 @@
-﻿###react-native-local-barcode-recognizer
+﻿###I fork it from this repo https://github.com/januslo/react-native-local-barcode-recognizer
 ## *** Still under development.
 
 ##Install:
 ```bash
 #install:
-npm install react-native-local-barcode-recognizer
+npm install react-native-local-qrcode
 
 #and link:
-react-native link react-native-local-barcode-recognizer
+react-native link react-native-local-qrcode
 
 ```
 
