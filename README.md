@@ -1,4 +1,4 @@
-﻿###I fork it from this repo https://github.com/januslo/react-native-local-barcode-recognizer
+﻿##I fork it from this repo https://github.com/januslo/react-native-local-barcode-recognizer
 ## *** Still under development.
 
 ##Install:
