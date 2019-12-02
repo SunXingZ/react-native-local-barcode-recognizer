@@ -128,7 +128,7 @@ public class LocalBarcodeRecognizerModule extends ReactContextBaseJavaModule {
                 inputHeight, // int height
                 false // boolean reverseHorizontal
         );
-        return new BinaryBitmap(new);
+        return new BinaryBitmap(new HybridBinarizer(source));
     }
 
     private static void encodeYUV420SP(byte[] yuv420sp, int[] argb, int width, int height) {
